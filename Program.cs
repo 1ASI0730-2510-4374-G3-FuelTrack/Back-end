@@ -97,14 +97,18 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ───── CORS ─────────────────────────────────────────
+// ───── CORS corregido ──────────────────────────────
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.WithOrigins(
+                "http://localhost:3000",                // desarrollo local
+                "https://fueltrack-frontend.vercel.app" // producción en Vercel
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // necesario para enviar tokens en Authorization
     });
 });
 
@@ -132,7 +136,10 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-app.UseCors("AllowAll");
+// Redirecciona HTTP a HTTPS (opcional pero recomendable en producción)
+app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
