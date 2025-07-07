@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "qpago+6XTOIAEdV60tk1eVkbEi635yect0ZFcKEPNeY=",
+  "Source": "FuelTrack.Api",
+  "BasePath": "_content/FuelTrack.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
