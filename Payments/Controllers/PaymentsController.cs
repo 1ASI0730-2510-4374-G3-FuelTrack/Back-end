@@ -39,24 +39,28 @@ public class PaymentsController : ControllerBase
     /// Registrar nuevo método de pago
     /// </summary>
     [HttpPost("methods")]
-    [Authorize(Roles = "Cliente")]
-    public async Task<ActionResult<PaymentMethodDto>> CreatePaymentMethod([FromBody] CreatePaymentMethodDto createDto)
+   [Authorize(Roles = "Cliente")]
+   public async Task<ActionResult<PaymentMethodDto>> CreatePaymentMethod([FromBody] CreatePaymentMethodDto createDto)
+{
+    if (!ModelState.IsValid)
+        return BadRequest(ModelState); // <----- VALIDA EL MODELO AQUÍ
+
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    if (!int.TryParse(userIdClaim, out int userId))
+        return Unauthorized();
+
+    try
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!int.TryParse(userIdClaim, out int userId))
-            return Unauthorized();
-
-        try
-        {
-            var paymentMethod = await _paymentService.CreatePaymentMethodAsync(createDto, userId);
-            return CreatedAtAction(nameof(GetPaymentMethods), paymentMethod);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var paymentMethod = await _paymentService.CreatePaymentMethodAsync(createDto, userId);
+        return CreatedAtAction(nameof(GetPaymentMethods), paymentMethod);
     }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
 
     /// <summary>
     /// Eliminar método de pago
