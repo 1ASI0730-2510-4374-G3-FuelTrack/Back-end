@@ -34,53 +34,59 @@ public class PaymentService : IPaymentService
     }
 
     public async Task<PaymentMethodDto> CreatePaymentMethodAsync(CreatePaymentMethodDto createDto, int userId)
+{
+    // Simulate card validation (in real implementation, use a payment processor)
+    if (!IsValidCardNumber(createDto.CardNumber))
+        throw new InvalidOperationException("Número de tarjeta inválido");
+
+    var cardType = GetCardType(createDto.CardNumber);
+    var lastFourDigits = createDto.CardNumber.Substring(createDto.CardNumber.Length - 4);
+    var encryptedCardNumber = EncryptCardNumber(createDto.CardNumber); // Simulate encryption
+
+    // If this is set as default, unset other default cards
+    if (createDto.IsDefault)
     {
-        // Simulate card validation (in real implementation, use a payment processor)
-        if (!IsValidCardNumber(createDto.CardNumber))
-            throw new InvalidOperationException("Número de tarjeta inválido");
+        var existingDefaults = await _context.PaymentMethods
+            .Where(pm => pm.UserId == userId && pm.IsDefault)
+            .ToListAsync();
 
-        var cardType = GetCardType(createDto.CardNumber);
-        var lastFourDigits = createDto.CardNumber.Substring(createDto.CardNumber.Length - 4);
-        var encryptedCardNumber = EncryptCardNumber(createDto.CardNumber); // Simulate encryption
-
-        // If this is set as default, unset other default cards
-        if (createDto.IsDefault)
+        foreach (var pm in existingDefaults)
         {
-            var existingDefaults = await _context.PaymentMethods
-                .Where(pm => pm.UserId == userId && pm.IsDefault)
-                .ToListAsync();
-                
-            foreach (var pm in existingDefaults)
-            {
-                pm.IsDefault = false;
-            }
+            pm.IsDefault = false;
+            pm.UpdatedAt = DateTime.UtcNow;
         }
-
-        var paymentMethod = new PaymentMethod
-        {
-            UserId = userId,
-            CardHolderName = createDto.CardHolderName,
-            LastFourDigits = lastFourDigits,
-            CardType = cardType,
-            EncryptedCardNumber = encryptedCardNumber,
-            ExpiryDate = new DateTime(createDto.ExpiryYear, createDto.ExpiryMonth, 1),
-            IsDefault = createDto.IsDefault
-        };
-
-        _context.PaymentMethods.Add(paymentMethod);
-        await _context.SaveChangesAsync();
-
-        return new PaymentMethodDto
-        {
-            Id = paymentMethod.Id,
-            CardHolderName = paymentMethod.CardHolderName,
-            LastFourDigits = paymentMethod.LastFourDigits,
-            CardType = paymentMethod.CardType,
-            ExpiryDate = paymentMethod.ExpiryDate,
-            IsDefault = paymentMethod.IsDefault,
-            CreatedAt = paymentMethod.CreatedAt
-        };
     }
+
+    var utcNow = DateTime.UtcNow;
+
+    var paymentMethod = new PaymentMethod
+    {
+        UserId = userId,
+        CardHolderName = createDto.CardHolderName,
+        LastFourDigits = lastFourDigits,
+        CardType = cardType,
+        EncryptedCardNumber = encryptedCardNumber,
+        ExpiryDate = new DateTime(createDto.ExpiryYear, createDto.ExpiryMonth, 1, 0, 0, 0, DateTimeKind.Utc),
+        IsDefault = createDto.IsDefault,
+        IsActive = true,
+        CreatedAt = utcNow,
+        UpdatedAt = utcNow
+    };
+
+    _context.PaymentMethods.Add(paymentMethod);
+    await _context.SaveChangesAsync();
+
+    return new PaymentMethodDto
+    {
+        Id = paymentMethod.Id,
+        CardHolderName = paymentMethod.CardHolderName,
+        LastFourDigits = paymentMethod.LastFourDigits,
+        CardType = paymentMethod.CardType,
+        ExpiryDate = paymentMethod.ExpiryDate,
+        IsDefault = paymentMethod.IsDefault,
+        CreatedAt = paymentMethod.CreatedAt
+    };
+}
 
     public async Task<bool> DeletePaymentMethodAsync(int paymentMethodId, int userId)
     {
