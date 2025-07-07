@@ -104,7 +104,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:3000",                // desarrollo local
-                "https://fueltrack-frontend.vercel.app" // producción en Vercel
+                "https://front-end-six-livid.vercel.app" // producción en Vercel
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
