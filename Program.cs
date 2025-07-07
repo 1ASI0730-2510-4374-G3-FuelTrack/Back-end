@@ -108,7 +108,7 @@ builder.Services.AddCors(options =>
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // necesario para enviar tokens en Authorization
+            .AllowCredentials();
     });
 });
 
@@ -136,8 +136,30 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-// Redirecciona HTTP a HTTPS (opcional pero recomendable en producción)
+// Redirecciona HTTP a HTTPS
 app.UseHttpsRedirection();
+
+// ───── Middleware de manejo de errores global ──────
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next.Invoke();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        var errorMessage = new
+        {
+            error = "Error interno del servidor",
+            detail = ex.Message
+        };
+
+        await context.Response.WriteAsJsonAsync(errorMessage);
+    }
+});
 
 app.UseCors("AllowFrontend");
 
