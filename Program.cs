@@ -65,12 +65,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ───── Entity Framework ─────────────────────────────
+// ───── Entity Framework con PostgreSQL ─────────────
 builder.Services.AddDbContext<FuelTrackDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ───── JWT Auth ─────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -101,7 +98,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ───── CORS ─────────────────────────────────────────
-// ⚠️ En producción, restringe con .WithOrigins("https://tudominio.com")
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -126,7 +122,6 @@ builder.Services.AddScoped<IOperatorService, OperatorService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
-// ───── Build app ───────────────────────────────────
 var app = builder.Build();
 
 // ───── Middlewares ─────────────────────────────────
@@ -137,7 +132,6 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-// ⚠️ IMPORTANTE: CORS antes de Auth
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
@@ -147,12 +141,12 @@ app.UseMiddleware<AccessLogMiddleware>();
 
 app.MapControllers();
 
-// ───── Seed de base de datos (si no existe) ────────
+// ───── Migraciones y Seed (auto) ───────────────────
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
-    await context.Database.EnsureCreatedAsync();
-    await SeedData.Initialize(context);
+    await context.Database.MigrateAsync(); // Aplica migraciones
+    await SeedData.Initialize(context);    // Seed inicial
 }
 
 app.Run();
