@@ -177,5 +177,20 @@ using (var scope = app.Services.CreateScope())
     await context.Database.MigrateAsync(); // Aplica migraciones
     await SeedData.Initialize(context);    // Seed inicial
 }
+catch (Exception ex)
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
+        await context.Database.MigrateAsync(); // Aplica migraciones
+        await SeedData.Initialize(context);    // Seed inicial
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "❌ Error al aplicar migraciones o inicializar datos");
+        // Opcional: continuar con la app o decidir si parar
+    }
+}
 
 app.Run();
