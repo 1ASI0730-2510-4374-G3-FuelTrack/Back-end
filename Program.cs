@@ -171,26 +171,17 @@ app.UseMiddleware<AccessLogMiddleware>();
 app.MapControllers();
 
 // ───── Migraciones y Seed (auto) ───────────────────
-using (var scope = app.Services.CreateScope())
+try
 {
+    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
     await context.Database.MigrateAsync(); // Aplica migraciones
     await SeedData.Initialize(context);    // Seed inicial
 }
 catch (Exception ex)
-using (var scope = app.Services.CreateScope())
 {
-    try
-    {
-        var context = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
-        await context.Database.MigrateAsync(); // Aplica migraciones
-        await SeedData.Initialize(context);    // Seed inicial
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "❌ Error al aplicar migraciones o inicializar datos");
-        // Opcional: continuar con la app o decidir si parar
-    }
+    Log.Error(ex, "❌ Error al aplicar migraciones o inicializar datos");
+    // Puedes decidir si lanzas una excepción o continúas
 }
 
 app.Run();
