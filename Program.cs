@@ -183,8 +183,7 @@ app.MapControllers();
 async Task ApplyMigrationsAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
+    var db = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
     for (int i = 1; i <= 5; i++)
     {
         try
