@@ -1,0 +1,3 @@
+2025-08-31 18:51:15.305 -05:00 [ERR] An error occurred using the connection to database 'fueltrack_db_frnm' on server 'tcp://dpg-d1lgtdp5pdvs73bvg2cg-a.oregon-postgres.render.com:5432'.
+2025-08-31 18:52:40.977 -05:00 [ERR] An error occurred using the connection to database 'fueltrack_db_frnm' on server 'tcp://dpg-d1lgtdp5pdvs73bvg2cg-a.oregon-postgres.render.com:5432'.
+2025-08-31 18:52:44.538 -05:00 [ERR] An error occurred using the connection to database 'fueltrack_db_frnm' on server 'tcp://dpg-d1lgtdp5pdvs73bvg2cg-a.oregon-postgres.render.com:5432'.

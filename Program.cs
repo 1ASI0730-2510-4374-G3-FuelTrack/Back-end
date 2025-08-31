@@ -66,16 +66,18 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ───── Entity Framework con PostgreSQL (con retry) ─────────────
+var connectionString = builder.Configuration["ConnectionStrings__DefaultConnection"] 
+                       ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<FuelTrackDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorCodesToAdd: null
-            );
-        }));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorCodesToAdd: null
+        );
+    }));
 
 // ───── JWT Auth ─────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -141,12 +143,14 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "FuelTrack API V1");
-    app.UseSwaggerUI();
     c.RoutePrefix = "swagger";
 });
 
-// Redirecciona HTTP a HTTPS
-app.UseHttpsRedirection();
+// Redirecciona HTTP a HTTPS (solo en local)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // ───── Middleware de manejo de errores global ──────
 app.Use(async (context, next) =>
