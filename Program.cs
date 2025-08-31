@@ -65,9 +65,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ───── Entity Framework con PostgreSQL ─────────────
+// ───── Entity Framework con PostgreSQL (con retry) ─────────────
 builder.Services.AddDbContext<FuelTrackDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions =>
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorCodesToAdd: null
+            );
+        }));
 
 // ───── JWT Auth ─────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -97,15 +105,14 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ───── CORS corregido ──────────────────────────────
+// ───── CORS ──────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:3000",                // desarrollo local
-                "https://front-end-six-livid.vercel.app", // producción en Vercel
-                "https://back-end-qzwq.onrender.com"
+                "http://localhost:3000",
+                "https://front-end-six-livid.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -134,6 +141,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "FuelTrack API V1");
+    app.UseSwaggerUI();
     c.RoutePrefix = "swagger";
 });
 
@@ -171,18 +179,31 @@ app.UseMiddleware<AccessLogMiddleware>();
 
 app.MapControllers();
 
-// ───── Migraciones y Seed (auto) ───────────────────
-try
+// ───── Migraciones y Seed (con retry) ───────────────────
+async Task ApplyMigrationsAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
-    await context.Database.MigrateAsync(); // Aplica migraciones
-    await SeedData.Initialize(context);    // Seed inicial
+
+    var retries = 5;
+    for (int i = 0; i < retries; i++)
+    {
+        try
+        {
+            await context.Database.MigrateAsync();
+            await SeedData.Initialize(context);
+            Log.Information("✅ Migraciones y Seed aplicados correctamente");
+            break;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"❌ Error al aplicar migraciones. Intento {i + 1} de {retries}");
+            if (i == retries - 1) throw;
+            await Task.Delay(5000); // espera 5 segundos y reintenta
+        }
+    }
 }
-catch (Exception ex)
-{
-    Log.Error(ex, "❌ Error al aplicar migraciones o inicializar datos");
-    // Puedes decidir si lanzas una excepción o continúas
-}
+
+await ApplyMigrationsAsync(app);
 
 app.Run();
