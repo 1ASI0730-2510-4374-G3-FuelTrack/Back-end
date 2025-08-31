@@ -183,25 +183,23 @@ app.MapControllers();
 async Task ApplyMigrationsAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    var retries = 5;
-    for (int i = 0; i < retries; i++)
+    for (int i = 1; i <= 5; i++)
     {
         try
         {
-            await context.Database.MigrateAsync();
-            await SeedData.Initialize(context);
-            Log.Information("✅ Migraciones y Seed aplicados correctamente");
-            break;
+            await db.Database.MigrateAsync();
+            return;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"❌ Error al aplicar migraciones. Intento {i + 1} de {retries}");
-            if (i == retries - 1) throw;
-            await Task.Delay(5000); // espera 5 segundos y reintenta
+            app.Logger.LogError(ex, "❌ Error al aplicar migraciones. Intento {i} de 5", i);
+            await Task.Delay(5000);
         }
     }
+
+    app.Logger.LogWarning("⚠️ No se pudieron aplicar migraciones, continuando de todas formas...");
 }
 
 await ApplyMigrationsAsync(app);
