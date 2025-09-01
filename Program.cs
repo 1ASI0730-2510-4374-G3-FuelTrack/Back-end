@@ -114,7 +114,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:3000",
-                "https://front-end-six-livid.vercel.app"
+                "https://front-end-six-livid.vercel.app",
+                "https://back-end-qzwq.onrender.com" // ¡Agrega esta línea!
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
