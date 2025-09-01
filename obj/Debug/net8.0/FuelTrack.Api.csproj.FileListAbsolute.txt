@@ -127,7 +127,6 @@ C:\Users\bryan\Desktop\backedn fueltrack roles 2\project\obj\Debug\net8.0\refint
 C:\Users\bryan\Desktop\backedn fueltrack roles 2\project\obj\Debug\net8.0\FuelTrack.Api.pdb
 C:\Users\bryan\Desktop\backedn fueltrack roles 2\project\obj\Debug\net8.0\FuelTrack.Api.genruntimeconfig.cache
 C:\Users\bryan\Desktop\backedn fueltrack roles 2\project\obj\Debug\net8.0\ref\FuelTrack.Api.dll
-C:\Users\bryan\Documents\GitHub\report\Back-end2\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\bryan\Documents\GitHub\report\Back-end2\bin\Debug\net8.0\appsettings.json
 C:\Users\bryan\Documents\GitHub\report\Back-end2\bin\Debug\net8.0\FuelTrack.Api.staticwebassets.endpoints.json
 C:\Users\bryan\Documents\GitHub\report\Back-end2\bin\Debug\net8.0\FuelTrack.Api.exe

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FuelTrack.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e58ca6fd79c7f866775d906ffff8274f3c03e664")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+279e9d3247660bfd66d154a447b936ce5a880b99")]
 [assembly: System.Reflection.AssemblyProductAttribute("FuelTrack.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FuelTrack.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
