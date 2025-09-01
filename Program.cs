@@ -146,8 +146,8 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-// Redirecciona HTTP a HTTPS (solo en local)
-if (!app.Environment.IsDevelopment())
+// Solo redirige HTTPS en desarrollo
+if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
@@ -183,26 +183,35 @@ app.UseMiddleware<AccessLogMiddleware>();
 
 app.MapControllers();
 
+// Endpoint de salud para la raíz
+app.MapGet("/", () => Results.Ok("🚀 FuelTrack API is running!"));
+
 // ───── Migraciones y Seed (con retry) ───────────────────
 async Task ApplyMigrationsAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<FuelTrackDbContext>();
+    
     for (int i = 1; i <= 5; i++)
     {
         try
         {
             await db.Database.MigrateAsync();
+            await SeedData.Initialize(db);
+            app.Logger.LogInformation("✅ Migraciones aplicadas correctamente");
             return;
         }
         catch (Exception ex)
         {
             app.Logger.LogError(ex, "❌ Error al aplicar migraciones. Intento {i} de 5", i);
+            if (i == 5) 
+            {
+                app.Logger.LogWarning("⚠️ Continuando sin migraciones aplicadas");
+                return;
+            }
             await Task.Delay(5000);
         }
     }
-
-    app.Logger.LogWarning("⚠️ No se pudieron aplicar migraciones, continuando de todas formas...");
 }
 
 await ApplyMigrationsAsync(app);
